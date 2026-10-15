@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="マイホーム">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0B6B78">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>マイホーム</title>
+<style>
+:root{--ink:#1B2A41;--teal:#0B6B78;--tealtext:#0B6B78;--tealbg:#E3F1F2;--amber:#F2B84B;--cream:#FDF3DC;--line:#D7DEE5;--bg:#F5F7F9;--muted:#4A5A6C;--card:#FFFFFF;--warn:#9A3B0A}
+@media (prefers-color-scheme: dark){:root{--ink:#E8EDF2;--tealtext:#5CC4D1;--tealbg:#12343A;--cream:#3A3220;--line:#2E3A48;--bg:#11161E;--muted:#A9B4C0;--card:#1B2430;--warn:#F5A97F}}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+header{padding:calc(16px + env(safe-area-inset-top)) 16px 4px}
+header .date{font-size:14px;font-weight:700;color:var(--tealtext)}
+header h1{margin:0;font-size:26px;line-height:1.3}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 16px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card h3{margin:14px 0 2px;font-size:14px;color:var(--tealtext)}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0}
+.check{display:flex;align-items:center;gap:12px;min-height:46px;border-bottom:1px solid var(--line);cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{width:24px;height:24px;margin:0;accent-color:var(--teal);flex-shrink:0}
+.check.done span{text-decoration:line-through;color:var(--muted)}
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700}
+.bar{height:12px;border-radius:6px;background:var(--tealbg);overflow:hidden;margin:6px 0 2px}
+.bar>span{display:block;height:100%;background:var(--teal);border-radius:6px}
+.bar.over>span{background:var(--amber)}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.btn{min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:15px;padding:6px 14px;display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#FFFFFF}
+.btn.small{min-height:44px;font-size:14px;padding:4px 12px}
+.btn.big{min-height:56px;font-size:17px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1 1 auto}
+label.field{display:block;font-size:14px;font-weight:700;margin:12px 0 4px}
+input[type=text],input[type=tel],input[type=number],select,textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-size:16px;background:var(--card);color:var(--ink)}
+textarea{min-height:88px;resize:vertical}
+.money{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.money .num{font-size:22px;font-weight:800}
+.money .over{color:var(--warn)}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:46px;border-bottom:1px solid var(--line);font-size:15px}
+.list li:last-child{border-bottom:0}
+.promise{counter-reset:p;list-style:none;margin:0;padding:0}
+.promise li{counter-increment:p;position:relative;padding:8px 0 8px 36px;border-bottom:1px solid var(--line)}
+.promise li:last-child{border-bottom:0}
+.promise li::before{content:counter(p);position:absolute;left:0;top:10px;width:26px;height:26px;border-radius:13px;background:var(--teal);color:#FFFFFF;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.help dt{font-weight:800;margin-top:10px}
+.help dd{margin:2px 0 8px;font-size:15px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav.tabs button{min-height:58px;border:0;background:none;font:inherit;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--tealtext);font-weight:800}
+nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<header>
+  <div class="date" id="today-date"></div>
+  <h1 id="page-title">今日</h1>
+</header>
+
+<main>
+  <!-- 今日 -->
+  <section id="tab-today">
+    <div class="card">
+      <div class="progress"><span>今日のチェック</span><span id="check-count"></span></div>
+      <div class="bar"><span id="check-bar" style="width:0%"></span></div>
+      <div id="check-list"></div>
+    </div>
+    <div class="card">
+      <h2>すぐ開く</h2>
+      <div class="quick">
+        <a class="btn primary" href="googlecalendar://">Googleカレンダー</a>
+        <a class="btn" href="x-apple-reminderkit://">リマインダー</a>
+        <a class="btn" href="shortcuts://">ショートカット</a>
+        <a class="btn" href="maps://">地図</a>
+      </div>
+      <p class="hint">開かない時は、そのアプリがiPhoneに入っているか確認してください。</p>
+    </div>
+    <div class="card">
+      <h2>今週のお金</h2>
+      <div id="money-mini"></div>
+    </div>
+  </section>
+
+  <!-- 困った時 -->
+  <section id="tab-help" hidden>
+    <div class="card">
+      <h2>命にかかわる時</h2>
+      <div class="quick">
+        <a class="btn primary big" href="tel:119">119 救急・火事</a>
+        <a class="btn primary big" href="tel:110">110 警察</a>
+      </div>
+    </div>
+    <div class="card">
+      <h2>相談する</h2>
+      <div class="quick">
+        <a class="btn" href="tel:188">188 消費者ホットライン</a>
+        <span class="btn" style="cursor:default">#7119 救急相談</span>
+        <span class="btn" style="cursor:default">#9110 警察相談</span>
+      </div>
+      <p class="hint">「#」のつく番号は、電話アプリで直接押してください。#7119は実施していない地域があります。</p>
+    </div>
+    <div class="card">
+      <h2>自分の連絡先</h2>
+      <ul class="list" id="contact-list"></ul>
+      <p class="hint">番号は「設定」で入れます。このiPhoneの中だけに保存されます。</p>
+    </div>
+    <div class="card">
+      <h2>こんな時は</h2>
+      <dl class="help">
+        <dt>鍵をなくした・閉め出された</dt><dd>管理会社に連絡。紛失防止タグを「探す」アプリで確認。</dd>
+        <dt>水漏れ・設備が壊れた</dt><dd>管理会社に連絡。水漏れは元栓を閉める。</dd>
+        <dt>体調が悪い</dt><dd>救急車を呼ぶか迷ったら #7119。職場に休みの連絡をする。</dd>
+        <dt>朝、寝坊した</dt><dd>気づいた時点で、すぐ職場に電話。理由は短く、正直に。</dd>
+        <dt>お金が足りない</dt><dd>借りない。親に連絡する。</dd>
+        <dt>あやしい電話・訪問・契約</dt><dd>その場で決めない。188に相談。</dd>
+        <dt>気持ちがしんどい</dt><dd>親か、相談先のだれかに連絡する。我慢しない。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 約束・取説 -->
+  <section id="tab-me" hidden>
+    <div class="card">
+      <h2>守る約束</h2>
+      <ol class="promise">
+        <li>その場で決めない。契約・買い物・勧誘・お金の話は、一度帰って親に相談する。</li>
+        <li>借金とお金の貸し借りはしない。困ったら親に相談する。</li>
+        <li>3秒待つ。返事も行動も、ひと呼吸おいてから。</li>
+        <li>できないことは、できる方法を探す。「確認して○日までに返事します」と言う。</li>
+        <li>疲れたら、早めにHELPを出す。我慢しない。</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>私の取扱説明書</h2>
+      <p class="hint" style="margin-top:0">自分の言葉で書きます。書いた内容は、このiPhoneの中だけに保存されます。</p>
+      <label class="field" for="m-good">得意・好きなこと</label><textarea id="m-good" data-manual="good"></textarea>
+      <label class="field" for="m-often">起きやすいこと</label><textarea id="m-often" data-manual="often"></textarea>
+      <label class="field" for="m-scene">起きやすい場面</label><textarea id="m-scene" data-manual="scene"></textarea>
+      <label class="field" for="m-works">うまくいく工夫</label><textarea id="m-works" data-manual="works"></textarea>
+      <label class="field" for="m-ask">周りにお願いしたいこと</label><textarea id="m-ask" data-manual="ask"></textarea>
+      <label class="field" for="m-first">いま試していること</label><textarea id="m-first" data-manual="first"></textarea>
+    </div>
+  </section>
+
+  <!-- お金 -->
+  <section id="tab-money" hidden>
+    <div class="card">
+      <h2>今週の残り（月曜〜日曜）</h2>
+      <div id="money-full"></div>
+    </div>
+    <div class="card">
+      <h2>使ったお金を入れる</h2>
+      <label class="field" for="sp-cat">種類</label>
+      <select id="sp-cat"><option value="food">食費</option><option value="free">自由に使うお金</option></select>
+      <label class="field" for="sp-amount">金額（円）</label>
+      <input id="sp-amount" type="number" inputmode="numeric" min="1" step="1">
+      <label class="field" for="sp-memo">メモ（何に使ったか）</label>
+      <input id="sp-memo" type="text">
+      <div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="sp-add">追加する</button></div>
+      <h3>今週の記録</h3>
+      <ul class="list" id="spend-list"></ul>
+    </div>
+    <div class="card">
+      <h2>ほしいものリスト（24時間ルール）</h2>
+      <p class="hint" style="margin-top:0">ほしい物は、すぐ買わずにここに入れます。24時間たっても欲しければ、買ってOK。</p>
+      <div class="row" style="margin-top:8px"><input id="wish-name" type="text" aria-label="ほしい物の名前" placeholder="ほしい物"><button class="btn primary small" type="button" id="wish-add" style="flex:0 0 auto">入れる</button></div>
+      <ul class="list" id="wish-list" style="margin-top:8px"></ul>
+      <p class="hint" id="wish-skipped"></p>
+    </div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="tab-settings" hidden>
+    <div class="card">
+      <h2>曜日ごとのやること</h2>
+      <p class="hint" style="margin-top:0">1行に1つ書きます（例：燃えるゴミを出す）。その曜日の「今日のチェック」に出ます。</p>
+      <div id="weekly-fields"></div>
+    </div>
+    <div class="card">
+      <h2>毎日のルーティン</h2>
+      <label class="field" for="r-morning">朝</label><textarea id="r-morning" data-routine="morning"></textarea>
+      <label class="field" for="r-home">帰宅したら</label><textarea id="r-home" data-routine="home"></textarea>
+      <label class="field" for="r-night">寝る前</label><textarea id="r-night" data-routine="night"></textarea>
+    </div>
+    <div class="card">
+      <h2>1週間の予算</h2>
+      <label class="field" for="b-food">食費（円）</label><input id="b-food" type="number" inputmode="numeric" min="0" data-budget="food">
+      <label class="field" for="b-free">自由に使うお金（円）</label><input id="b-free" type="number" inputmode="numeric" min="0" data-budget="free">
+    </div>
+    <div class="card">
+      <h2>連絡先</h2>
+      <div id="contact-fields"></div>
+    </div>
+    <div class="card">
+      <h2>バックアップ</h2>
+      <p class="hint" style="margin-top:0">機種変更の前に、内容をコピーしてメモアプリなどに保存しておきます。</p>
+      <div class="row" style="margin-top:8px"><button class="btn small" type="button" id="bk-show">バックアップを表示</button><button class="btn small" type="button" id="bk-copy">コピー</button></div>
+      <textarea id="bk-text" aria-label="バックアップの内容" style="margin-top:8px" placeholder="ここにバックアップを貼り付けて「復元」を押すと、元に戻せます"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn small" type="button" id="bk-restore">復元</button></div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="画面の切り替え">
+  <button type="button" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>今日</button>
+  <button type="button" data-tab="help" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>困った時</button>
+  <button type="button" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>約束</button>
+  <button type="button" data-tab="money" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14.5h2"/></svg>お金</button>
+  <button type="button" data-tab="settings" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>設定</button>
+</nav>
+
+<script>
+(function () {
+  var KEY = 'myhome-v1';
+  var DOW = ['日', '月', '火', '水', '木', '金', '土'];
+  var TITLES = { today: '今日', help: '困った時', me: '約束と取扱説明書', money: 'お金', settings: '設定' };
+  var DEFAULTS = {
+    weekly: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+    routine: {
+      morning: ['アラーム2つで起きる', '鍵・財布・スマホを持つ'],
+      home: ['鍵と財布を定位置トレイへ', '郵便を玄関で開ける'],
+      night: ['机と玄関を戻す（5分）', '明日の予定と持ち物を見る', '22時にスマホを置く']
+    },
+    contacts: [
+      { label: '親（父）', tel: '' }, { label: '親（母）', tel: '' },
+      { label: '管理会社・大家さん', tel: '' }, { label: '職場（休む時）', tel: '' },
+      { label: 'かかりつけの病院', tel: '' }
+    ],
+    manual: { good: '', often: '', scene: '', works: '', ask: '', first: '' },
+    budget: { food: 0, free: 0 },
+    checks: {},
+    spend: [],
+    wish: [],
+    skipped: 0
+  };
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function merge(s) {
+    var st = clone(DEFAULTS);
+    if (s && typeof s === 'object') { Object.keys(st).forEach(function (k) { if (k in s) st[k] = s[k]; }); }
+    return st;
+  }
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { s = null; }
+    return merge(s);
+  }
+  var state = load();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function dateKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function weekKey(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return dateKey(x); }
+  function lines(v) { return String(v || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean); }
+  function yen(n) { return Number(n || 0).toLocaleString('ja-JP') + '円'; }
+  function $(id) { return document.getElementById(id); }
+
+  // 古い記録を片付ける（チェックは2週間、お金は8週間）
+  function tidy() {
+    var now = new Date();
+    var keepDay = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14));
+    Object.keys(state.checks).forEach(function (k) { if (k < keepDay) delete state.checks[k]; });
+    var keepWeek = weekKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 56));
+    state.spend = state.spend.filter(function (s) { return s.week >= keepWeek; });
+  }
+
+  /* 今日 */
+  function renderToday() {
+    var now = new Date();
+    $('today-date').textContent = (now.getMonth() + 1) + '月' + now.getDate() + '日（' + DOW[now.getDay()] + '）';
+    var checks = state.checks[dateKey(now)] || {};
+    var groups = [
+      ['朝', state.routine.morning, 'm'],
+      ['帰宅したら', state.routine.home, 'h'],
+      ['寝る前', state.routine.night, 'n'],
+      ['今日（' + DOW[now.getDay()] + '曜日）だけ', state.weekly[now.getDay()] || [], 'w']
+    ];
+    var total = 0, done = 0, html = '';
+    groups.forEach(function (g) {
+      if (!g[1] || !g[1].length) return;
+      html += '<h3>' + esc(g[0]) + '</h3>';
+      g[1].forEach(function (t, i) {
+        var id = g[2] + i + ':' + t;
+        var c = !!checks[id];
+        total++; if (c) done++;
+        html += '<label class="check' + (c ? ' done' : '') + '"><input type="checkbox" data-check="' + esc(id) + '"' + (c ? ' checked' : '') + '><span>' + esc(t) + '</span></label>';
+      });
+    });
+    if (!(state.weekly[now.getDay()] || []).length) {
+      html += '<p class="hint">「設定」で曜日ごとのやること（ゴミの日など）を入れると、その曜日にここに出ます。</p>';
+    }
+    $('check-list').innerHTML = html;
+    $('check-count').textContent = done + '／' + total;
+    $('check-bar').style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+    $('money-mini').innerHTML = moneyHtml(true);
+  }
+
+  /* お金 */
+  function weekSpend() { var w = weekKey(new Date()); return state.spend.filter(function (s) { return s.week === w; }); }
+  function moneyHtml(mini) {
+    var b = state.budget;
+    if (!Number(b.food) && !Number(b.free)) return '<p class="hint" style="margin:0">「設定」で1週間の予算を入れると、ここに残りが出ます。</p>';
+    var used = { food: 0, free: 0 };
+    weekSpend().forEach(function (s) { used[s.cat] = (used[s.cat] || 0) + Number(s.amount); });
+    var cells = [['food', '食費'], ['free', '自由に使うお金']].map(function (c) {
+      var bud = Number(b[c[0]]) || 0, left = bud - used[c[0]];
+      var pct = bud ? Math.min(100, Math.round(used[c[0]] / bud * 100)) : 0;
+      return '<div><div style="font-size:14px;font-weight:700">' + c[1] + '</div>' +
+        '<div class="num' + (left < 0 ? ' over' : '') + '">' + (left < 0 ? '−' + yen(-left) : yen(left)) + '</div>' +
+        '<div class="bar' + (left < 0 ? ' over' : '') + '"><span style="width:' + pct + '%"></span></div>' +
+        '<div class="hint" style="margin:0">予算 ' + yen(bud) + '</div></div>';
+    }).join('');
+    var tip = mini ? '' : '<p class="hint">残りがマイナスの時は、来週の使い方を週1の振り返りで1つ決めます。</p>';
+    return '<div class="money">' + cells + '</div>' + tip;
+  }
+  function renderMoney() {
+    $('money-full').innerHTML = moneyHtml(false);
+    var items = weekSpend().slice().reverse();
+    $('spend-list').innerHTML = items.length ? items.map(function (s) {
+      return '<li><span>' + esc(s.date.slice(5).replace('-', '/')) + '　' + (s.cat === 'food' ? '食費' : '自由') + '　' + esc(s.memo || '') + '</span><span class="row" style="flex:0 0 auto;gap:8px"><b>' + yen(s.amount) + '</b><button class="btn small" type="button" data-del-spend="' + esc(s.id) + '" aria-label="この記録を消す">消す</button></span></li>';
+    }).join('') : '<li class="hint">まだ記録はありません。</li>';
+    var now = Date.now();
+    $('wish-list').innerHTML = state.wish.length ? state.wish.map(function (w) {
+      var left = Math.ceil((w.ts + 86400000 - now) / 3600000);
+      var right = left > 0
+        ? '<span class="hint" style="margin:0">あと' + left + '時間</span>'
+        : '<span class="row" style="flex:0 0 auto;gap:6px"><button class="btn small" type="button" data-wish-buy="' + esc(w.id) + '">買う</button><button class="btn small" type="button" data-wish-skip="' + esc(w.id) + '">やめる</button></span>';
+      return '<li><span>' + esc(w.name) + '</span>' + right + '</li>';
+    }).join('') : '<li class="hint">リストは空です。</li>';
+    $('wish-skipped').textContent = state.skipped ? 'これまでに、待って「やめる」を選べた数：' + state.skipped : '';
+  }
+
+  /* 困った時 */
+  function renderHelp() {
+    $('contact-list').innerHTML = state.contacts.map(function (c) {
+      var t = String(c.tel || '').replace(/[^0-9+]/g, '');
+      return '<li><span>' + esc(c.label || '') + '</span>' + (t ? '<a class="btn small primary" href="tel:' + esc(t) + '">電話する</a>' : '<span class="hint" style="margin:0">未登録</span>') + '</li>';
+    }).join('');
+  }
+
+  /* 約束・取説 */
+  function renderMe() {
+    document.querySelectorAll('[data-manual]').forEach(function (el) { el.value = state.manual[el.getAttribute('data-manual')] || ''; });
+  }
+
+  /* 設定 */
+  function renderSettings() {
+    var order = [1, 2, 3, 4, 5, 6, 0];
+    $('weekly-fields').innerHTML = order.map(function (d) {
+      return '<label class="field" for="w-' + d + '">' + DOW[d] + '曜日</label><textarea id="w-' + d + '" data-weekly="' + d + '" style="min-height:64px">' + esc((state.weekly[d] || []).join('\n')) + '</textarea>';
+    }).join('');
+    document.querySelectorAll('[data-routine]').forEach(function (el) { el.value = (state.routine[el.getAttribute('data-routine')] || []).join('\n'); });
+    document.querySelectorAll('[data-budget]').forEach(function (el) { var v = state.budget[el.getAttribute('data-budget')]; el.value = v ? v : ''; });
+    $('contact-fields').innerHTML = state.contacts.map(function (c, i) {
+      return '<label class="field" for="c-l-' + i + '">名前</label><input id="c-l-' + i + '" type="text" data-contact-label="' + i + '" value="' + esc(c.label || '') + '">' +
+        '<label class="field" for="c-t-' + i + '">電話番号</label><input id="c-t-' + i + '" type="tel" data-contact-tel="' + i + '" value="' + esc(c.tel || '') + '">';
+    }).join('<hr style="border:0;border-top:1px solid var(--line);margin:14px 0 2px">');
+  }
+
+  var current = 'today';
+  function renderAll() { tidy(); renderToday(); renderMoney(); renderHelp(); renderMe(); }
+  function show(tab) {
+    current = tab;
+    document.querySelectorAll('main > section').forEach(function (s) { s.hidden = s.id !== 'tab-' + tab; });
+    document.querySelectorAll('nav.tabs button').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === tab ? 'true' : 'false'); });
+    $('page-title').textContent = TITLES[tab];
+    if (tab === 'settings') renderSettings(); else renderAll();
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelector('nav.tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-tab]'); if (b) show(b.getAttribute('data-tab'));
+  });
+
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-check')) {
+      var k = dateKey(new Date());
+      state.checks[k] = state.checks[k] || {};
+      if (el.checked) state.checks[k][el.getAttribute('data-check')] = true; else delete state.checks[k][el.getAttribute('data-check')];
+      save(); renderToday(); return;
+    }
+    if (el.hasAttribute('data-weekly')) { state.weekly[el.getAttribute('data-weekly')] = lines(el.value); save(); return; }
+    if (el.hasAttribute('data-routine')) { state.routine[el.getAttribute('data-routine')] = lines(el.value); save(); return; }
+    if (el.hasAttribute('data-budget')) { state.budget[el.getAttribute('data-budget')] = Math.max(0, Math.floor(Number(el.value) || 0)); save(); return; }
+    if (el.hasAttribute('data-contact-label')) { state.contacts[+el.getAttribute('data-contact-label')].label = el.value.trim(); save(); return; }
+    if (el.hasAttribute('data-contact-tel')) { state.contacts[+el.getAttribute('data-contact-tel')].tel = el.value.trim(); save(); return; }
+  });
+
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-manual')) { state.manual[el.getAttribute('data-manual')] = el.value; save(); }
+  });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.id === 'sp-add') {
+      var amt = Math.floor(Number($('sp-amount').value));
+      if (!(amt > 0)) { $('sp-amount').focus(); return; }
+      var now = new Date();
+      state.spend.push({ id: String(Date.now()), week: weekKey(now), date: dateKey(now), cat: $('sp-cat').value, amount: amt, memo: $('sp-memo').value.trim() });
+      $('sp-amount').value = ''; $('sp-memo').value = '';
+      save(); renderMoney(); return;
+    }
+    if (t.hasAttribute('data-del-spend')) {
+      var id = t.getAttribute('data-del-spend');
+      state.spend = state.spend.filter(function (s) { return s.id !== id; }); save(); renderMoney(); return;
+    }
+    if (t.id === 'wish-add') {
+      var name = $('wish-name').value.trim(); if (!name) { $('wish-name').focus(); return; }
+      state.wish.push({ id: String(Date.now()), name: name, ts: Date.now() }); $('wish-name').value = ''; save(); renderMoney(); return;
+    }
+    if (t.hasAttribute('data-wish-buy') || t.hasAttribute('data-wish-skip')) {
+      var wid = t.getAttribute('data-wish-buy') || t.getAttribute('data-wish-skip');
+      if (t.hasAttribute('data-wish-skip')) state.skipped = (state.skipped || 0) + 1;
+      state.wish = state.wish.filter(function (w) { return w.id !== wid; }); save(); renderMoney(); return;
+    }
+    if (t.id === 'bk-show') { $('bk-text').value = JSON.stringify(state); return; }
+    if (t.id === 'bk-copy') {
+      if (!$('bk-text').value) $('bk-text').value = JSON.stringify(state);
+      var txt = $('bk-text').value;
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { t.textContent = 'コピーしました'; setTimeout(function () { t.textContent = 'コピー'; }, 1500); }, function () {});
+      return;
+    }
+    if (t.id === 'bk-restore') {
+      var raw = $('bk-text').value.trim(); if (!raw) return;
+      var s;
+      try { s = JSON.parse(raw); } catch (err) { s = null; }
+      if (!s || typeof s !== 'object' || !s.routine) { alert('バックアップの形が正しくありません'); return; }
+      if (!confirm('今の内容を、貼り付けたバックアップで置き換えます。よろしいですか？')) return;
+      state = merge(s); save(); renderSettings(); alert('復元しました');
+    }
+  });
+
+  // 次の日にアプリを開いた時も、日付とチェックを新しくする
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && current !== 'settings') renderAll(); });
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+
+  show('today');
+})();
+</script>
+</body>
+</html>
