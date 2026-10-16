@@ -14,9 +14,20 @@
 <style>
 :root{--ink:#1B2A41;--teal:#0B6B78;--tealtext:#0B6B78;--tealbg:#E3F1F2;--amber:#F2B84B;--cream:#FDF3DC;--line:#D7DEE5;--bg:#F5F7F9;--muted:#4A5A6C;--card:#FFFFFF;--warn:#9A3B0A}
 @media (prefers-color-scheme: dark){:root{--ink:#E8EDF2;--tealtext:#5CC4D1;--tealbg:#12343A;--cream:#3A3220;--line:#2E3A48;--bg:#11161E;--muted:#A9B4C0;--card:#1B2430;--warn:#F5A97F}}
+/* 画面ごとの色（今日=青緑、困った時=赤、約束=紫、お金=オレンジ、設定=グレー） */
+body[data-tab="help"]{--teal:#B42318;--tealtext:#B42318;--tealbg:#FEE4E2}
+body[data-tab="me"]{--teal:#6941C6;--tealtext:#6941C6;--tealbg:#EBE9FE}
+body[data-tab="money"]{--teal:#B54708;--tealtext:#B54708;--tealbg:#FEF0C7}
+body[data-tab="settings"]{--teal:#475467;--tealtext:#475467;--tealbg:#EAECF0}
+@media (prefers-color-scheme: dark){
+  body[data-tab="help"]{--tealtext:#FDA29B;--tealbg:#55160C}
+  body[data-tab="me"]{--tealtext:#BDB4FE;--tealbg:#2E1F5E}
+  body[data-tab="money"]{--tealtext:#FEC84B;--tealbg:#4E1D09}
+  body[data-tab="settings"]{--tealtext:#D0D5DD;--tealbg:#344054}
+}
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
-header{padding:calc(16px + env(safe-area-inset-top)) 16px 4px}
+header{padding:calc(16px + env(safe-area-inset-top)) 16px 12px;background:var(--tealbg);border-bottom:3px solid var(--teal)}
 header .date{font-size:14px;font-weight:700;color:var(--tealtext)}
 header h1{margin:0;font-size:26px;line-height:1.3}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 16px}
@@ -55,7 +66,20 @@ textarea{min-height:88px;resize:vertical}
 .help dd{margin:2px 0 8px;font-size:15px}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:10}
 nav.tabs button{min-height:58px;border:0;background:none;font:inherit;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
-nav.tabs button[aria-selected="true"]{color:var(--tealtext);font-weight:800}
+nav.tabs button[data-tab="today"]{color:#0B6B78}
+nav.tabs button[data-tab="help"]{color:#B42318}
+nav.tabs button[data-tab="me"]{color:#6941C6}
+nav.tabs button[data-tab="money"]{color:#B54708}
+nav.tabs button[data-tab="settings"]{color:#475467}
+@media (prefers-color-scheme: dark){
+  nav.tabs button[data-tab="today"]{color:#5CC4D1}
+  nav.tabs button[data-tab="help"]{color:#FDA29B}
+  nav.tabs button[data-tab="me"]{color:#BDB4FE}
+  nav.tabs button[data-tab="money"]{color:#FEC84B}
+  nav.tabs button[data-tab="settings"]{color:#D0D5DD}
+}
+nav.tabs button[aria-selected="false"]{opacity:0.7}
+nav.tabs button[aria-selected="true"]{font-weight:800;box-shadow:inset 0 3px 0 currentColor}
 nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 [hidden]{display:none !important}
 </style>
@@ -228,7 +252,7 @@ nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2
     routine: {
       morning: ['アラーム2つで起きる', '鍵・財布・スマホを持つ'],
       home: ['鍵と財布を定位置トレイへ', '郵便を玄関で開ける'],
-      night: ['机と玄関を戻す（5分）', '明日の予定と持ち物を見る', '22時にスマホを置く']
+      night: ['机の上を片付ける（出した物を元の場所へ）', '玄関と窓の鍵を確認する（戸締り）', '明日の予定と持ち物を見る', '22時にスマホを置く']
     },
     contacts: [
       { label: '親（父）', tel: '' }, { label: '親（母）', tel: '' },
@@ -247,6 +271,12 @@ nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2
   function merge(s) {
     var st = clone(DEFAULTS);
     if (s && typeof s === 'object') { Object.keys(st).forEach(function (k) { if (k in s) st[k] = s[k]; }); }
+    // 以前の「机と玄関を戻す（5分）」を、具体的な2つのやることに置き換える
+    var night = st.routine && st.routine.night;
+    if (Array.isArray(night)) {
+      var old = night.indexOf('机と玄関を戻す（5分）');
+      if (old >= 0) night.splice(old, 1, '机の上を片付ける（出した物を元の場所へ）', '玄関と窓の鍵を確認する（戸締り）');
+    }
     return st;
   }
   function load() {
@@ -371,6 +401,9 @@ nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2
   function renderAll() { tidy(); renderToday(); renderMoney(); renderHelp(); renderMe(); }
   function show(tab) {
     current = tab;
+    document.body.setAttribute('data-tab', tab);
+    var theme = { today: '#0B6B78', help: '#B42318', me: '#6941C6', money: '#B54708', settings: '#475467' }[tab];
+    var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', theme);
     document.querySelectorAll('main > section').forEach(function (s) { s.hidden = s.id !== 'tab-' + tab; });
     document.querySelectorAll('nav.tabs button').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === tab ? 'true' : 'false'); });
     $('page-title').textContent = TITLES[tab];
